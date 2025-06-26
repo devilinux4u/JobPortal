@@ -1,0 +1,42 @@
+﻿@model List<JobPortal.Models.Application>
+
+@{
+    ViewData["Title"] = "Company Dashboard";
+}
+
+<h2>Company Dashboard</h2>
+
+@if (Model.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Application ID</th>
+                <th>Job Title</th>
+                <th>Applicant Name</th>
+                <th>Email</th>
+                <th>Resume URL</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var application in Model)
+            {
+                <tr>
+                    <td>@application.Id</td>
+                    <td>@application.Job?.Title</td>
+                    <td>@application.Name</td>
+                    <td>@application.Email</td>
+                    <td><a href="@application.ResumeUrl" target="_blank">@application.ResumeUrl</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No applications submitted for your jobs yet.</p>
+}
+
+<div>
+    <a asp-action="Index">Back to Jobs</a>
+</div>

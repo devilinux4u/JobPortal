@@ -1,0 +1,9 @@
+﻿@model JobPortal.Models.Application
+
+@{
+    ViewData["Title"] = "Application Submitted";
+}
+
+<h2>Application Submitted</h2>
+<p>Thank you for applying to @ViewBag.Job?.Title. Your application ID is @Model.Id.</p>
+<p><a asp-action="Index">Back to Jobs</a></p>

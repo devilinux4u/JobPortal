@@ -1,0 +1,26 @@
+﻿@{
+    ViewData["Title"] = "Welcome to JobPortal";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome to JobPortal</h1>
+    <p class="lead">Find your dream job or post opportunities for top talent.</p>
+    @if (!User.Identity?.IsAuthenticated ?? true)
+    {
+        <p>
+            <a class="btn btn-primary btn-lg" asp-area="Identity" asp-page="/Account/Register">Get Started</a>
+        </p>
+    }
+    else
+    {
+        <p>
+            <a class="btn btn-primary btn-lg" asp-area="" asp-controller="Job" asp-action="Index">View Jobs</a>
+            @if (User.IsInRole("Company"))
+            {
+                <a class="btn btn-success btn-lg" asp-area="" asp-controller="Job" asp-action="Create">Post a Job</a>
+            }
+        </p>
+    }
+    <hr />
+    <p>JobPortal connects job seekers with companies worldwide. Log in to explore or manage your listings.</p>
+</div>

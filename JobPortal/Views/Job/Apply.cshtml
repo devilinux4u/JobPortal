@@ -1,0 +1,35 @@
+﻿@model JobPortal.Models.Application
+
+@{
+    ViewData["Title"] = "Apply for Job";
+}
+
+<h2>Apply for @ViewBag.Job?.Title</h2>
+
+<form asp-action="Apply" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label asp-for="Name">Full Name</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Email">Email</label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="ResumeUrl">Resume (URL)</label>
+        <input asp-for="ResumeUrl" class="form-control" />
+        <span asp-validation-for="ResumeUrl" class="text-danger"></span>
+    </div>
+    <input type="hidden" asp-for="JobId" />
+    <button type="submit" class="btn btn-primary">Submit Application</button>
+</form>
+
+<div>
+    <a asp-action="Index">Back to Jobs</a>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

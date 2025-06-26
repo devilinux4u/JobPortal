@@ -1,0 +1,124 @@
+﻿@model IEnumerable<JobPortal.Models.Job>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="container mx-auto px-6 py-8">
+    <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-6">Job List</h1>
+
+    <div class="flex justify-end mb-6">
+        @if (User.Identity?.IsAuthenticated ?? false && User.IsInRole("Company"))
+        {
+            <a asp-action="Create" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-700 transition duration-300 font-semibold">
+                + Add New Job
+            </a>
+        }
+    </div>
+
+    <div class="overflow-hidden rounded-lg shadow-lg bg-gray-100 p-4">
+        <table class="w-full border-collapse bg-white rounded-lg shadow-md" id="tbllist">
+            <thead class="bg-dark text-white">
+                <tr class="bg-gray-800 text-white">
+                    <th class="px-6 py-4 text-left font-semibold">
+                        @Html.DisplayNameFor(model => model.Id)
+                    </th>
+                    <th class="px-6 py-4 text-left font-semibold">
+                        @Html.DisplayNameFor(model => model.Title)
+                    </th>
+                    <th class="px-6 py-4 text-left font-semibold">
+                        @Html.DisplayNameFor(model => model.Description)
+                    </th>
+                    <th class="px-6 py-4 text-center font-semibold">
+                        @Html.DisplayNameFor(model => model.Location)
+                    </th>
+                    <th class="px-6 py-4 text-center font-semibold">
+                        @Html.DisplayNameFor(model => model.Salary)
+                    </th>
+                    <th class="px-6 py-4 text-center font-semibold">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>
+
+<script>
+    var js = jQuery.noConflict(true);
+    js(document).ready(function () {
+        LoadListing();
+    });
+
+    function FunEdit(element) {
+        console.log("Edit clicked");
+        var id = $(element).closest('tr').find('input[type=hidden]').val();
+        if (id) {
+            window.location.href = "/Job/Edit?id=" + id;
+        } else {
+            console.error("ID not found");
+        }
+    }
+
+    function FunRemove(element) {
+        console.log("Remove clicked");
+        var id = $(element).closest('tr').find('input[type=hidden]').val();
+        if (id) {
+            window.location.href = "/Job/Delete?id=" + id;
+        } else {
+            console.error("ID not found");
+        }
+    }
+
+    function LoadListing() {
+        var jobdata = [];
+        $.ajax({
+            type: "POST",
+            url: "/Job/GetAll",
+            async: false,
+            dataType: "json", // Explicitly expect JSON
+            success: function (data) {
+                console.log("AJAX success, data:", data);
+                if (!data || data.length === 0) {
+                    console.warn("No data received");
+                    return;
+                }
+                var role = data[0].userRole || "Anonymous"; // Use role from response
+                $.each(data, function (key, value) {
+                    var action = "";
+                    var hdn = "<input type='hidden' value='" + value.id + "' />";
+                    if (role === "Company") {
+                        var editbtn = "<a onclick='FunEdit(this)' class='btn btn-primary mr-2'>Edit</a>";
+                        var removebtn = "<a onclick='FunRemove(this)' class='btn btn-danger'>Remove</a>";
+                        action = editbtn + removebtn + hdn;
+                    } else if (role === "JobSeeker" || role === "Anonymous") {
+                        var applybtn = "<a href='/Job/Apply?id=" + value.id + "' class='btn btn-success'>Apply</a>";
+                        action = applybtn + hdn;
+                    }
+                    jobdata.push([value.id, value.title, value.description, value.location, value.salary, action]);
+                });
+            },
+            error: function (xhr, status, error) {
+                console.error("AJAX error:", status, error);
+                console.log("Response:", xhr.responseText); // Log the full response
+            }
+        });
+        js('#tbllist').DataTable({
+            data: jobdata,
+            pageLength: 5,
+            lengthMenu: [5, 10, 25, 50],
+            order: [[0, "asc"]],
+            responsive: true
+        });
+    }
+
+</script>
+
+ // Hidden input to store the current user's role (optional)
+<input type="hidden" id="loggedInUser" />
