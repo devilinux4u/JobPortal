@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace JobPortal.Controllers
 {
-    [Route("Job/[action]")] // Explicitly define route for clarity
+    [Route("Job/[action]")]
     public class JobController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -27,15 +27,25 @@ namespace JobPortal.Controllers
         }
 
         [HttpPost]
-        [AllowAnonymous] // Allow anonymous access to test, adjust as needed
+        [AllowAnonymous]
         public IActionResult GetAll()
         {
             var userId = User.Identity?.IsAuthenticated ?? false ? _userManager.GetUserId(User) : null;
             var jobs = _context.Jobs.AsQueryable();
-            if (User.Identity?.IsAuthenticated ?? false && User.IsInRole("Company"))
+            // Only filter by CompanyId if the user is in the Company role
+            if (User.Identity?.IsAuthenticated == true && User.IsInRole("Company"))
             {
                 jobs = jobs.Where(j => j.CompanyId == userId);
+                Console.WriteLine($"GetAll: Filtering for Company, UserId={userId}, Jobs count={jobs.Count()}");
             }
+            else
+            {
+                // No filtering for JobSeeker or Anonymous
+                Console.WriteLine($"GetAll: No filtering, UserId={userId}, IsAuthenticated={User.Identity?.IsAuthenticated}, Jobs count={jobs.Count()}");
+            }
+            // Verify total jobs in DB for debugging
+            var allJobs = _context.Jobs.ToList();
+            Console.WriteLine($"Total jobs in DB: {allJobs.Count}");
             // Determine role server-side
             string role = "Anonymous";
             if (User.Identity?.IsAuthenticated ?? false)
@@ -52,9 +62,13 @@ namespace JobPortal.Controllers
                 description = j.Description,
                 location = j.Location,
                 salary = j.Salary,
-                userRole = role // Add role to the response
+                userRole = role
             }).ToList();
-            return new JsonResult(jobList); // Explicitly return JSON
+            if (jobList.Count == 0)
+            {
+                Console.WriteLine($"Warning: No jobs returned. Filtered count={jobs.Count()}, Role={role}");
+            }
+            return new JsonResult(jobList);
         }
 
         [Authorize(Roles = "Company")]
