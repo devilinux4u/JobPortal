@@ -169,11 +169,12 @@ namespace JobPortal.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpGet]
         public IActionResult Apply(int id)
         {
-            var job = _context.Jobs.Find(id);
+            var job = _context.Jobs.FirstOrDefault(j => j.Id == id);
             if (job == null) return NotFound();
-            var model = new Application { JobId = id };
+            var model = new Application { JobId = job.Id };
             if (User.Identity?.IsAuthenticated ?? false)
             {
                 var user = _userManager.GetUserAsync(User).Result;
@@ -186,25 +187,29 @@ namespace JobPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Apply([Bind("JobId,Name,Email,ResumeUrl")] Application application, int id)
+        public async Task<IActionResult> Apply([Bind("JobId,Name,Email,ResumeUrl")] Application application)
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Job = await _context.Jobs.FindAsync(id);
+                ViewBag.Job = await _context.Jobs.FindAsync(application.JobId);
                 return View(application);
             }
-            var job = await _context.Jobs.FindAsync(id);
+
+            var job = await _context.Jobs.FindAsync(application.JobId);
             if (job == null) return NotFound();
+
             if (User.Identity?.IsAuthenticated ?? false)
             {
                 var user = await _userManager.GetUserAsync(User);
                 application.UserId = user?.Id;
             }
-            application.JobId = id;
+
             _context.Applications.Add(application);
             await _context.SaveChangesAsync();
+
             return RedirectToAction("Applied", new { id = application.Id });
         }
+
 
         public IActionResult Applied(int id)
         {
